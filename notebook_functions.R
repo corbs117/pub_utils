@@ -85,4 +85,17 @@ print(kable(stats, digits = 2, format = "simple"))
         title = "Simple ETF RP - Equal Weight"
       )
   print(p)
+
+   # exposure over time
+  p <- backtest_results %>%
+  select(ticker, date, exposure) %>%
+  ggplot(aes(x = date, y = exposure, fill = ticker, colour = ticker)) +
+    geom_bar(stat = "identity") +
+    #scale_y_log10() +
+    labs(
+      x = "Date",
+      y = "Exposure, $",
+      title = "Exposure by ticker"
+    )
+  print(p)
 }
