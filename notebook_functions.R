@@ -11,3 +11,38 @@ get_ohlc <- function(symbol, start_date, end_date) {
 
   return(data_df)
 }
+
+
+# Get 13-week funding rates - formatted for rsims
+get_rates <- function(symbol = '^IRX', start_date= '1995-01-01', end_date= Sys.Date()) {
+
+  rates <- get_ohlc(symbol, start_date, end_date)
+  rates <- rates %>%
+    select(date, adj_close) %>%
+    rename(rate = adj_close)
+
+  rates <- rates %>%
+  tidyr::fill(rate, .direction = "down")
+
+  # Show rows with NA values
+  print(rates[!complete.cases(rates), ])
+
+  # convert to a daily percentage
+  broker_spread <- 0.5  # %
+  rates <- rates %>%
+    mutate(applied_rate = pmax((rate - broker_spread)/(365*100), 0))
+
+  # plot it to make sure it looks sensible
+  rates %>%
+    ggplot(aes(x = date, y = applied_rate*100*365)) +
+    geom_line() +
+    labs(x = "Date", y = "Applied Rate", title = "Interest earned on spare cash")
+
+
+  # convert to matrix for simulation
+  sim_rates <- rates %>%
+    select(date, applied_rate) %>%
+    data.matrix()
+
+  return(sim_rates)
+}
