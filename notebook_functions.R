@@ -150,6 +150,30 @@ portfolio_costs <- function(backtest_results) {
 }
 
 ################################
+# portfolio sharpe on backtest results - mainly for parameter seeking
+################################
+calculate_portfolio_sharpe <- function(df) {
+  # Step 1: Aggregate exposure per day
+  portfolio_equity <- df %>%
+    group_by(date) %>%
+    summarise(total_equity = sum(exposure, na.rm = TRUE), .groups = "drop") %>%
+    arrange(date)
+  
+  # Step 2: Compute daily log returns
+  portfolio_returns <- portfolio_equity %>%
+    mutate(log_return = log(total_equity / dplyr::lag(total_equity))) %>%
+    filter(!is.na(log_return))
+  
+  # Step 3: Compute Sharpe ratio
+  daily_excess_returns <- portfolio_returns$log_return 
+  mean_daily <- mean(daily_excess_returns)
+  sd_daily <- sd(daily_excess_returns)
+  sharpe_ratio <- mean_daily / sd_daily * sqrt(252)
+  
+  return(sharpe_ratio)
+}
+
+################################
 # function for getting headline statistics from backtest results
 # THIS DOESNT WORK YET
 ################################
