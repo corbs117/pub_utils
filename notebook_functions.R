@@ -72,7 +72,8 @@ portfolio_headline_statistics <- function(backtest_results) {
           "Ann.Sharpe" = `Ann.Return(%)`/`Ann.Volatility(%)`,
           "Max Drawdown(%)" = min(drawdown, na.rm = TRUE) * 100
         )
-print(kable(stats, digits = 2, format = "simple"))
+  print(kable(stats, digits = 2, format = "simple"))
+  print()
     
   # equity curve
   p <- port_equity %>%
@@ -98,4 +99,35 @@ print(kable(stats, digits = 2, format = "simple"))
       title = "Exposure by ticker"
     )
   print(p)
+}
+
+################################
+# function for getting headline statistics from backtest results
+# THIS DOESNT WORK YET
+################################
+portfolio_headline_statistics_NAV <- function(backtest_results) {
+# plot NAV over exposure
+NAV <- results_df %>%
+  group_by(date) %>%
+  summarise(exposure = sum(exposure)) %>%
+  mutate(ticker = "NAV")
+
+NAV <- results_df %>%
+  select(ticker, date, exposure) %>%
+  bind_rows(NAV) %>%
+  arrange(date, ticker)
+
+NAV %>%
+    filter(ticker != "NAV") %>%
+    ggplot(aes(x = date, y = exposure, fill = ticker)) +
+    geom_area() +
+    scale_fill_manual(name = "ticker", values = c('#00b0f6', '#F8766D'), limits = c('TLT', 'Cash')) +
+    geom_line(data = NAV %>% dplyr::filter(ticker == "NAV"), aes(x = date, y = exposure, colour = "ticker"), linewidth = 1.5) +
+    scale_colour_manual(values = "black", labels = "NAV") +
+    labs(
+      x = "Date",
+      y = "Expsoure",
+      title = "Dollar exposure and Net Asset Value",
+      colour = ""
+    )
 }
