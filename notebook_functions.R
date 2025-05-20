@@ -73,7 +73,6 @@ portfolio_headline_statistics <- function(backtest_results) {
           "Max Drawdown(%)" = min(drawdown, na.rm = TRUE) * 100
         )
   print(kable(stats, digits = 2, format = "simple"))
-  print()
     
   # equity curve
   p <- port_equity %>%
@@ -99,6 +98,27 @@ portfolio_headline_statistics <- function(backtest_results) {
       title = "Exposure by ticker"
     )
   print(p)
+
+  p <- port_equity %>%
+    mutate(returns = log(equity/dplyr::lag(equity))) %>%
+    na.omit() %>%
+    mutate(
+    `Rolling Ann.Return` = 252*roll::roll_mean(returns, width = 252, min_obs = 252),
+    `Rolling Ann.Volatility` = sqrt(252)*roll::roll_sd(returns, width = 252, min_obs = 252),
+    `Rolling Ann.Sharpe` = `Rolling Ann.Return`/`Rolling Ann.Volatility`
+    ) %>%
+    select(date, `Rolling Ann.Return`, `Rolling Ann.Volatility`, `Rolling Ann.Sharpe`) %>%
+    pivot_longer(cols = c(-date), names_to = "metric", values_to = "value") %>%
+    mutate(metric = factor(metric, levels = c("Rolling Ann.Return", "Rolling Ann.Volatility", "Rolling Ann.Sharpe"))) %>%
+    ggplot(aes(x = date, y = value)) +
+    geom_line() +
+    facet_wrap(~metric, ncol = 1, scales = "free_y") +
+    labs(
+      title = "Rolling performance",
+      x = "Date",
+      y = "Value"
+    )
+   print(p)
 }
 
 ################################
