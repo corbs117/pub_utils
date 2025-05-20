@@ -122,6 +122,34 @@ portfolio_headline_statistics <- function(backtest_results) {
 }
 
 ################################
+# various cost statys
+################################
+portfolio_costs <- function(backtest_results) {
+  # trading costs through time
+  p <- backtest_results %>%
+    select(ticker, date, commission) %>%
+    filter(ticker != "Cash") %>%
+    ggplot(aes(x = date, y = commission, colour = ticker, fill = ticker)) +
+      geom_bar(stat = "identity") +
+      labs(
+        x = "Date",
+        y = "Commission, $",
+        title = "Commission by ticker"
+      )
+  print(p)
+
+  p <- results_df %>%
+  ggplot(aes(x = date, y = share_trades)) +
+  geom_bar(stat = "identity") +
+  labs(
+    title = "Number of shares traded",
+    x = "Date",
+    y = "Number of shares traded"
+  )
+  print(p)
+}
+
+################################
 # function for getting headline statistics from backtest results
 # THIS DOESNT WORK YET
 ################################
